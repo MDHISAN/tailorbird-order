@@ -1,0 +1,1 @@
+Place PDF files in this folder. No JPG/WEBP needed. Examples: TB-DESIGN-049.pdf, TB-DESIGN-050.pdf, TB-DESIGN-051.pdf. One PDF may contain any number of pages. Keep the server running.

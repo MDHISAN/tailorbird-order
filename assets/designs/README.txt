@@ -1,0 +1,1 @@
+Replace demo SVGs with your actual design JPG/PNG/SVG files, then edit designCollection in index.html with each title, id and file path. No customer-design collection assets were supplied, so starter slides are clearly marked DEMO.
