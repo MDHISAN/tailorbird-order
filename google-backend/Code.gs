@@ -136,6 +136,11 @@ function setup(){
     const ss=SpreadsheetApp.openById(p.getProperty('SHEET_ID'));let sheet=ss.getSheetByName('Orders');
     if(!sheet){sheet=ss.insertSheet('Orders');sheet.appendRow(['Received At','Order ID','Team','Customer','Phone','Email','Market','Quantity','Fabric','GSM','Selected Designs','Logo Positions','Saved Files (grouped)','Production PDF','Drive Folder','Status']);}
   }
+  // Keep the header row aligned with the current readable order format, including existing sheets.
+  const liveSheet=SpreadsheetApp.openById(p.getProperty('SHEET_ID')).getSheetByName('Orders');
+  const headers=['Received At','Order ID','Team','Customer','Phone','Email','Market','Quantity','Fabric','GSM','Selected Designs','Logo Positions','Saved Files (grouped)','Production PDF','Drive Folder','Status'];
+  liveSheet.getRange(1,1,1,headers.length).setValues([headers]).setFontWeight('bold').setWrap(true);
+  liveSheet.setFrozenRows(1);
   p.setProperty('NOTIFICATION_EMAILS',OWNER_EMAILS.join(','));
   Logger.log('Drive Folder: '+DriveApp.getFolderById(p.getProperty('ORDERS_FOLDER_ID')).getUrl());
   Logger.log('Google Sheet: '+SpreadsheetApp.openById(p.getProperty('SHEET_ID')).getUrl());
