@@ -12,7 +12,7 @@ function ensureFolder(parent,name){const it=parent.getFoldersByName(name);return
 function groupFolder(group,sub){
   const g=String(group||'Other');
   if(/^Selected Designs/i.test(g))return ensureFolder(sub,'01 - Selected Designs');
-  if(/^Logos\\//i.test(g)){
+  if(/^Logos\//i.test(g)){
     const root=ensureFolder(sub,'02 - Customer Logos');
     return ensureFolder(root,cleanName(g.split('/').slice(1).join(' - '),60));
   }
