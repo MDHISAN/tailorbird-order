@@ -123,9 +123,11 @@ function doPost(e){
     const recipients=prop('NOTIFICATION_EMAILS')||OWNER_EMAILS.join(',');
     try{MailApp.sendEmail({to:recipients,subject:'New TailorBird Order '+id+' — '+d.team,
       body:'New TailorBird order received.\nOrder ID: '+id+'\nTeam: '+d.team+'\nCustomer: '+d.customer+'\nQuantity: '+(d.total||0)+
-      '\nSelected designs: '+designs.map(x=>x.title+' ('+x.id+')').join(', ')+'\nProduction PDF: '+pdf.getUrl()+'\nAll order files: '+folder.getUrl()});}
+      '\nSelected designs: '+designs.map(x=>x.title+' ('+x.id+')').join(', ')+'\nProduction PDF: '+pdf.getUrl()+'\nOrder ZIP: '+(zipUrl||'Could not be created')+'\nAll order files: '+folder.getUrl()});}
     catch(emailErr){console.error('Order saved, but email notification failed: '+emailErr);}
-    return htmlReply({ok:true,nonce,orderId:id,folderUrl:folder.getUrl(),pdfUrl:pdf.getUrl()});
+    const response={ok:true,nonce,orderId:id,folderUrl:folder.getUrl(),pdfUrl:pdf.getUrl(),zipUrl};
+    if(nonce)PropertiesService.getScriptProperties().setProperty('ORDER_NONCE_'+nonce,JSON.stringify(response));
+    return htmlReply(response);
   }catch(err){console.error(err&&err.stack||err);return htmlReply({ok:false,nonce,message:String(err&&err.message||err)});}
 }
 function htmlReply(obj){
