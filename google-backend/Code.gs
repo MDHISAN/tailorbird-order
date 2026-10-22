@@ -28,6 +28,7 @@ function doPost(e){
     const raw=(e&&e.parameter&&e.parameter.payload)||'';
     if(raw.length>12500000)throw Error('Request too large. Please send fewer/smaller attachments.');
     const order=JSON.parse(raw);nonce=String(order.nonce||'');
+    if(nonce){const prior=prop('ORDER_NONCE_'+nonce);if(prior){const cached=JSON.parse(prior);return htmlReply({...cached,nonce});}}
     const d=order.details||{};
     if(!String(d.team||'').trim()||!String(d.customer||'').trim()||!String(d.phone||'').trim())throw Error('Required customer details are missing.');
     if(!Array.isArray(order.files))throw Error('Invalid attachments.');
@@ -53,7 +54,7 @@ function doPost(e){
       const name=cleanName(file.name||'upload',150);
       const blob=Utilities.newBlob(bytes,String(file.mime||'application/octet-stream'),name);
       const created=dest.createFile(blob);
-      saved.push({group:group,name:created.getName(),url:created.getUrl(),folder:dest.getName(),size:bytes.length});
+      saved.push({group:group,name:created.getName(),url:created.getUrl(),fileId:created.getId(),folder:dest.getName(),size:bytes.length});
     }
     const submittedAt=new Date();
     const details={
@@ -104,6 +105,14 @@ function doPost(e){
     const source=DriveApp.getFileById(doc.getId());
     const pdf=docs.createFile(source.getAs(MimeType.PDF).setName(id+'_Production_Order.pdf'));
     source.setTrashed(true);
+    // Create a server-side ZIP in the order's Documents folder when Drive can package the supplied files.
+    let zipUrl='';
+    try{
+      const zipBlobs=[pdf.getBlob(),Utilities.newBlob(JSON.stringify(details,null,2),MimeType.PLAIN_TEXT,'Order_Details.json')];
+      saved.forEach(item=>{try{zipBlobs.push(DriveApp.getFileById(item.fileId).getBlob().setName(item.folder+'/'+item.name));}catch(fileErr){console.warn('ZIP skipped file '+item.name+': '+fileErr);}});
+      const zipBlob=Utilities.zip(zipBlobs,id+'_Complete_Order.zip');
+      const zipFile=docs.createFile(zipBlob);zipUrl=zipFile.getUrl();
+    }catch(zipErr){console.warn('Order saved, but ZIP creation failed: '+zipErr);}
     const sheet=SpreadsheetApp.openById(prop('SHEET_ID')).getSheetByName('Orders');
     if(!sheet)throw Error('Orders sheet tab is missing. Run setup() again.');
     sheet.appendRow([submittedAt,id,d.team,d.customer,d.phone,d.email||'',d.market||'',d.total||0,d.fabricJersey||'',d.gsmJersey||'',
