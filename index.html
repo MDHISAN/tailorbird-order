@@ -171,4 +171,25 @@ async function submitLiveOrder(){
  }catch(e){alert('Order NOT confirmed: '+e.message)}
  finally {button.disabled=false;button.textContent=oldText;document.querySelectorAll('iframe[name^="tb_reply_"]').forEach(x=>x.remove());document.querySelectorAll('form[target^="tb_reply_"]').forEach(x=>x.remove());}
 }
+
+/* Preview and remove attachments before sending an order. */
+function tbRenderUploads(input){
+ let panel=input.nextElementSibling;
+ if(!panel||!panel.classList.contains('tb-upload-list')){panel=document.createElement('div');panel.className='tb-upload-list';panel.style.margin='8px 0';input.insertAdjacentElement('afterend',panel)}
+ panel.replaceChildren();
+ [...input.files].forEach((file,index)=>{
+  const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:8px;margin:5px 0;padding:7px;border:1px solid #42678c;border-radius:8px';
+  const name=document.createElement('span');name.textContent=file.name+' ('+(file.size/1048576).toFixed(2)+' MB)';name.style.overflowWrap='anywhere';
+  const btn=document.createElement('button');btn.type='button';btn.className='ghost mini';btn.textContent='Remove / বাদ দিন';
+  btn.onclick=()=>{const dt=new DataTransfer();[...input.files].forEach((f,i)=>{if(i!==index)dt.items.add(f)});input.files=dt.files;tbRenderUploads(input);updateSummary()};
+  row.append(name,btn);panel.append(row);
+ });
+}
+document.addEventListener('change',event=>{
+ const el=event.target;if(!(el instanceof HTMLInputElement)||el.type!=='file'||!document.getElementById('formScreen').contains(el))return;
+ tbRenderUploads(el);
+ const all=Object.values(allFileInputs()).flat().flatMap(input=>[...input.files]);
+ if(all.some(f=>f.size>3*1048576))alert('Maximum 3 MB per file / প্রতিটি ফাইল সর্বোচ্চ ৩ MB।');
+ if(all.reduce((n,f)=>n+f.size,0)>8*1048576)alert('Maximum 8 MB total, including selected catalogue previews / মোট সর্বোচ্চ ৮ MB।');
+});
 </script></body></html>
