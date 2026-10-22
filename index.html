@@ -168,6 +168,8 @@ async function submitLiveOrder(){
   orderId=result.orderId; currentOrder=getData();
   document.getElementById('doneId').textContent=orderId;
   changeStep(3);
+  // Offer the customer a local ZIP immediately after confirmation; retain the manual button as fallback.
+  setTimeout(()=>{try{downloadPackage()}catch(zipErr){console.warn('Automatic ZIP download unavailable; use the Download ZIP button.',zipErr);const info=document.getElementById('zipInfo');if(info)info.textContent='Automatic ZIP download was blocked. Use the Download ZIP package button below.'}},700);
  }catch(e){alert('Order NOT confirmed: '+e.message)}
  finally {button.disabled=false;button.textContent=oldText;document.querySelectorAll('iframe[name^="tb_reply_"]').forEach(x=>x.remove());document.querySelectorAll('form[target^="tb_reply_"]').forEach(x=>x.remove());}
 }
